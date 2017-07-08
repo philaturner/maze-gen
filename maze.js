@@ -13,6 +13,7 @@ var xyProb = 100;
 var initalFR = 3;
 
 function setup(){
+  //add canvas
   var canvas = createCanvas(630, 630);
   canvas.parent(gameContainer);
 
@@ -44,11 +45,13 @@ function setup(){
   }
 
   //initalise current random start cell
-  var rq = floor(random(0,qaxis-1));
-  var rz = floor(random(0,zaxis-1));
-  var rindex = floor(random(0,24));
+  // var rq = floor(random(0,qaxis-1));
+  // var rz = floor(random(0,zaxis-1));
+  // var rindex = floor(random(0,24));
   //console.log(rq,rz,rindex);
   //currentCell = cellGrid[rq][rz][rindex];
+
+  //fixed start position
   currentCell = cellGrid[3][3][13];
 }
 
@@ -59,6 +62,7 @@ function draw(){
   var fr = fSlider.value();
   frameRate(fr);
 
+  //render cells
   for (var q = 0; q < qaxis; q++){
     for (var z = 0; z < zaxis; z++){
       for (var i = 0; i < cellGrid[q][z].length; i++){
@@ -109,6 +113,7 @@ function removeLines(a,b){
   }
 }
 
+//add markers showing z and q movements
 function addMarker(a,b){
   if (a.z != b.z){
     a.zmarker = true;
@@ -130,6 +135,7 @@ function addMarker(a,b){
   }
 }
 
+//main cell object
 function Cell(i, j, z, q){
   this.i = i;
   this.j = j;
@@ -147,7 +153,7 @@ function Cell(i, j, z, q){
   this.checkNeighbours = function(){
     var neighbours = [];
 
-    //2D check through neighbours and
+    //2D check through neighbours
     var above = cellGrid[q][z][calcIndex(i,j-1)];
     var right = cellGrid[q][z][calcIndex(i+1,j)];
     var below = cellGrid[q][z][calcIndex(i,j+1)];
@@ -207,12 +213,14 @@ function Cell(i, j, z, q){
         }
       }
     }
+    //sets marker for z movement
     if (this.zmarker){
       noStroke();
       fill(this.zfill);
       ellipse(x+scl/2,y+scl/2,scl/6,scl/6);
     }
 
+    //sets marker for q axis movement
     if (this.qmarker){
       noStroke();
       fill(this.qfill);
@@ -220,7 +228,7 @@ function Cell(i, j, z, q){
       //triangle(x,y,x+scl/2,y+scl/2,x-scl/2,y-scl/2);
     }
 
-    //color current cell
+    //colour current cell
     if (this == currentCell){
       noStroke();
       fill(0,255,0,50);
@@ -237,6 +245,7 @@ function Cell(i, j, z, q){
   }
 }
 
+//calculates index of 1d array based on grid layout
 function calcIndex(i,j){
   //check for valid index
   if (i < 0 || j < 0 || i > cols-1 || j > rows-1){
@@ -245,6 +254,7 @@ function calcIndex(i,j){
   return i + j * rows
 }
 
+//stops invalid z movement
 function calcZ(a){
   //check for valid index
   if (a == 0){
@@ -259,7 +269,7 @@ function calcZ(a){
   return a
 }
 
-//https://stackoverflow.com/questions/1484506/random-color-generator
+// https://stackoverflow.com/questions/1484506/random-color-generator
 function getRandomColor() {
   var letters = '0123456789ABCDEF';
   var color = '#';
