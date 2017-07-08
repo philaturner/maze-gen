@@ -6,13 +6,23 @@ var pathStack = [];
 var gridSize = 100;
 var hOffset = gridSize + 5;
 var vOffset = gridSize + 5;
-var FRAMERATE = 55;
 var zaxis = 6;
 var qaxis = 6;
+var fSlider;
+var xyProb = 7;
 
 function setup(){
-  createCanvas(630, 630);
-  frameRate(FRAMERATE);
+  var canvas = createCanvas(630, 630);
+  canvas.parent(gameContainer);
+
+  //framerate slider
+  fSlider = createSlider(1, 55, 25);
+  fSlider.position(90, height + 28);
+  textSize(15);
+  fill(0);
+  noStroke();
+
+  frameRate(fSlider.value());
   cols = gridSize / scl//floor(width / scl);
   rows = gridSize / scl //floor(height / scl);
 
@@ -33,12 +43,21 @@ function setup(){
   }
 
   //initalise current random start cell
-  //currentCell = cellGrid[0][0][floor(random(0,cellGrid[0][0].length))];
-  currentCell = cellGrid[0][3][13];
+  var rq = floor(random(0,qaxis-1));
+  var rz = floor(random(0,zaxis-1));
+  var rindex = floor(random(0,24));
+  //console.log(rq,rz,rindex);
+  //currentCell = cellGrid[rq][rz][rindex];
+  currentCell = cellGrid[3][3][13];
 }
 
 function draw(){
   background(88);
+
+  //update framerate to slider value
+  var fr = fSlider.value();
+  frameRate(fr);
+
   for (var q = 0; q < qaxis; q++){
     for (var z = 0; z < zaxis; z++){
       for (var i = 0; i < cellGrid[q][z].length; i++){
@@ -142,10 +161,13 @@ function Cell(i, j, z, q){
     if(calcZ(q+1)) var qDown = cellGrid[q+1][z][calcIndex(i,j)];
 
     //push into array if valid neighbour
-    if (above && !above.visited) neighbours.push(above);
-    if (right && !right.visited) neighbours.push(right);
-    if (below && !below.visited) neighbours.push(below);
-    if (left && !left.visited) neighbours.push(left);
+    for (var d = 0; d < xyProb; d++){
+      //add multiple times to array to increase chance of picking x,y direction
+      if (above && !above.visited) neighbours.push(above);
+      if (right && !right.visited) neighbours.push(right);
+      if (below && !below.visited) neighbours.push(below);
+      if (left && !left.visited) neighbours.push(left);
+    }
 
     if (infront && !infront.visited) neighbours.push(infront);
     if (behind && !behind.visited) neighbours.push(behind);
@@ -187,13 +209,14 @@ function Cell(i, j, z, q){
     if (this.zmarker){
       noStroke();
       fill(this.zfill);
-      ellipse(x+scl/2,y+scl/2,scl/3,scl/3);
+      ellipse(x+scl/2,y+scl/2,scl/6,scl/6);
     }
 
     if (this.qmarker){
       noStroke();
       fill(this.qfill);
       ellipse(x+scl/2,y+scl/2,scl/3,scl/3);
+      //triangle(x,y,x+scl/2,y+scl/2,x-scl/2,y-scl/2);
     }
 
     //color current cell
