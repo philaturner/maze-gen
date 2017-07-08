@@ -1,49 +1,63 @@
-var scl = 20;
+var scl = 25;
 var cols, rows;
 var cellGrid = [];
 var currentCell;
 var pathStack = [];
-var hOffset = 210;
+var gridSize = 100;
+var hOffset = gridSize + 5;
+var vOffset = gridSize + 5;
+var FRAMERATE = 55;
+var zaxis = 6;
+var qaxis = 6;
 
 function setup(){
-  createCanvas(830,200);
-  //frameRate(20);
-  cols = 200 / scl//floor(width / scl);
-  rows = 200/ scl //floor(height / scl);
-  zaxis = 4;
+  createCanvas(630, 630);
+  frameRate(FRAMERATE);
+  cols = gridSize / scl//floor(width / scl);
+  rows = gridSize / scl //floor(height / scl);
 
   //setup cells
-  for (var z = 0; z < zaxis; z++){
-    var tempGrid = [];
-    for (var j = 0; j < rows; j++){
-      for (var i = 0; i < cols; i++){
-        var cell = new Cell(i, j, z);
-          tempGrid.push(cell);
-          //cellGrid[z] = cellGrid[0].push(cell);
+  for (var q = 0; q < qaxis; q++){
+  var qGrid = [];
+    for (var z = 0; z < zaxis; z++){
+      var tempGrid = [];
+      for (var j = 0; j < rows; j++){
+        for (var i = 0; i < cols; i++){
+          var cell = new Cell(i, j, z, q);
+            tempGrid.push(cell);
+        }
       }
+      qGrid.push(tempGrid);
     }
-    cellGrid[z] = tempGrid;
+    cellGrid.push(qGrid);
   }
+
   //initalise current random start cell
-  currentCell = cellGrid[0][floor(random(0,cellGrid[0].length))];
+  //currentCell = cellGrid[0][0][floor(random(0,cellGrid[0][0].length))];
+  currentCell = cellGrid[0][3][13];
 }
 
 function draw(){
   background(88);
-  for (var z = 0; z < zaxis; z++){
-    for (var i = 0; i < cellGrid[z].length; i++){
-      cellGrid[z][i].render();
+  for (var q = 0; q < qaxis; q++){
+    for (var z = 0; z < zaxis; z++){
+      for (var i = 0; i < cellGrid[q][z].length; i++){
+        cellGrid[q][z][i].render();
+      }
     }
   }
   //flag cell as visited
   currentCell.visited = true;
+
   //next cell is an available neighbour cell
   var nextCell = currentCell.checkNeighbours();
+
   //if defined make current cell the next one
   if (nextCell){
     pathStack.push(currentCell);
     //remove lines between current and next
     removeLines(currentCell, nextCell);
+    addMarker(currentCell, nextCell);
     //update current cell to be next cell
     currentCell = nextCell;
   }
@@ -75,38 +89,80 @@ function removeLines(a,b){
   }
 }
 
-function Cell(i, j, z){
+function addMarker(a,b){
+  if (a.z != b.z){
+    a.zmarker = true;
+    b.zmarker = true;
+    if((b.z - a.z) != 0){
+      var col = getRandomColor();
+      a.zfill = col;
+      b.zfill = col;
+    }
+  }
+  if (a.q != b.q){
+    a.qmarker = true;
+    b.qmarker = true;
+    if((b.q - a.q) != 0){
+      var col = getRandomColor();
+      a.qfill = col;
+      b.qfill = col;
+    }
+  }
+}
+
+function Cell(i, j, z, q){
   this.i = i;
   this.j = j;
   this.z = z;
+  this.q = q;
   this.visited = false;
+  this.zmarker = false;
+  this.zfill = getRandomColor();
+  this.qmarker = false;
+  this.qfill = getRandomColor();
 
   //top, right, bottom, left
   this.walls = [true, true, true, true];
 
   this.checkNeighbours = function(){
     var neighbours = [];
-    //check through all neighbours and push into array if valid
-    var above = cellGrid[0][calcIndex(i,j-1)];
-    var right = cellGrid[0][calcIndex(i+1,j)];
-    var below = cellGrid[0][calcIndex(i,j+1)];
-    var left = cellGrid[0][calcIndex(i-1,j)];
 
+    //2D check through neighbours and
+    var above = cellGrid[q][z][calcIndex(i,j-1)];
+    var right = cellGrid[q][z][calcIndex(i+1,j)];
+    var below = cellGrid[q][z][calcIndex(i,j+1)];
+    var left = cellGrid[q][z][calcIndex(i-1,j)];
+
+    //3D check
+    if (z != 0) var infront = cellGrid[q][z-1][calcIndex(i,j)];
+    if(calcZ(z+1)) var behind = cellGrid[q][z+1][calcIndex(i,j)];
+
+    //4d check
+    if (q !=0) var qUp = cellGrid[q-1][z][calcIndex(i,j)];
+    if(calcZ(q+1)) var qDown = cellGrid[q+1][z][calcIndex(i,j)];
+
+    //push into array if valid neighbour
     if (above && !above.visited) neighbours.push(above);
     if (right && !right.visited) neighbours.push(right);
     if (below && !below.visited) neighbours.push(below);
     if (left && !left.visited) neighbours.push(left);
-    //if are neighbours pick a random one
+
+    if (infront && !infront.visited) neighbours.push(infront);
+    if (behind && !behind.visited) neighbours.push(behind);
+    if (qUp && !qUp.visited) neighbours.push(qUp);
+    if (qDown && !qDown.visited) neighbours.push(qDown);
+
+    //pick a random neighbour
     if (neighbours.length > 0){
+      //console.log('Found ' + neighbours.length + " neighbours");
       var r = floor(random(0,neighbours.length));
       return neighbours[r]
     }
-
   }
 
   this.render = function() {
     var x = (this.i * scl) + (z * hOffset);
-    var y = (this.j * scl);
+    var y = (this.j * scl) + (q * vOffset);
     stroke(255);
 
     //draw walls
@@ -128,6 +184,18 @@ function Cell(i, j, z){
         }
       }
     }
+    if (this.zmarker){
+      noStroke();
+      fill(this.zfill);
+      ellipse(x+scl/2,y+scl/2,scl/3,scl/3);
+    }
+
+    if (this.qmarker){
+      noStroke();
+      fill(this.qfill);
+      ellipse(x+scl/2,y+scl/2,scl/3,scl/3);
+    }
+
     //color current cell
     if (this == currentCell){
       noStroke();
@@ -151,4 +219,28 @@ function calcIndex(i,j){
     return -1
   }
   return i + j * rows
+}
+
+function calcZ(a){
+  //check for valid index
+  if (a == 0){
+    return a
+  }
+  if (a == -1){
+    return undefined
+  }
+  if (a > zaxis-1){
+    return undefined
+  }
+  return a
+}
+
+//https://stackoverflow.com/questions/1484506/random-color-generator
+function getRandomColor() {
+  var letters = '0123456789ABCDEF';
+  var color = '#';
+  for (var i = 0; i < 6; i++) {
+    color += letters[Math.floor(Math.random() * 16)];
+  }
+  return color;
 }
