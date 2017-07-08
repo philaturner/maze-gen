@@ -9,14 +9,15 @@ var vOffset = gridSize + 5;
 var zaxis = 6;
 var qaxis = 6;
 var fSlider;
-var xyProb = 7;
+var xyProb = 100;
+var initalFR = 3;
 
 function setup(){
   var canvas = createCanvas(630, 630);
   canvas.parent(gameContainer);
 
   //framerate slider
-  fSlider = createSlider(1, 55, 25);
+  fSlider = createSlider(1, 55, initalFR);
   fSlider.position(90, height + 28);
   textSize(15);
   fill(0);
