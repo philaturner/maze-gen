@@ -1,8 +1,9 @@
-// CONFIG
-var MULT = 6;
-var scl = 20;
-var TILE_WIDTH = 5;
+// CONFIG - Play
+var MULT = 6; //mini tile size
+var scl = 20; //box size
+var TILE_WIDTH = 5; //number of tiles
 var initalFR = 25;  //framerate
+var xyProb = 100; //probability to move only x/y
 // -------
 
 var cols, rows;
@@ -15,7 +16,6 @@ var vOffset = gridSize + 5;
 var zaxis = TILE_WIDTH;
 var qaxis = TILE_WIDTH;
 var fSlider;
-var xyProb = 100;
 
 function setup(){
   //add canvas
