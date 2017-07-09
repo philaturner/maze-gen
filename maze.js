@@ -1,20 +1,25 @@
-var scl = 25;
+// CONFIG
+var MULT = 6;
+var scl = 20;
+var TILE_WIDTH = 5;
+var initalFR = 25;  //framerate
+// -------
+
 var cols, rows;
 var cellGrid = [];
 var currentCell;
 var pathStack = [];
-var gridSize = 100;
+var gridSize = scl * MULT;
 var hOffset = gridSize + 5;
 var vOffset = gridSize + 5;
-var zaxis = 6;
-var qaxis = 6;
+var zaxis = TILE_WIDTH;
+var qaxis = TILE_WIDTH;
 var fSlider;
 var xyProb = 100;
-var initalFR = 3;
 
 function setup(){
   //add canvas
-  var canvas = createCanvas(630, 630);
+  var canvas = createCanvas(hOffset*zaxis, vOffset*qaxis);
   canvas.parent(gameContainer);
 
   //framerate slider
