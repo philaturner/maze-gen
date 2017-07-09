@@ -2,7 +2,7 @@
 var MULT = 6; //mini tile size
 var scl = 20; //box size
 var TILE_WIDTH = 5; //number of tiles
-var initalFR = 25;  //framerate
+var initalFR = 15;  //framerate
 var xyProb = 100; //probability to move only x/y
 // -------
 
@@ -81,16 +81,18 @@ function draw(){
   //next cell is an available neighbour cell
   var nextCell = currentCell.checkNeighbours();
 
-  //if defined make current cell the next one
+  //if nextcell possible
   if (nextCell){
     pathStack.push(currentCell);
     //remove lines between current and next
     removeLines(currentCell, nextCell);
+    //add marker for z or q movement
     addMarker(currentCell, nextCell);
     //update current cell to be next cell
     currentCell = nextCell;
   }
-  //check for not neightbours
+
+  //if no neightbour trace stack back until neighbour
   if (!nextCell && pathStack.length > 0){
     var poppedCell = pathStack.pop();
     currentCell = poppedCell;
@@ -123,19 +125,31 @@ function addMarker(a,b){
   if (a.z != b.z){
     a.zmarker = true;
     b.zmarker = true;
-    if((b.z - a.z) != 0){
-      var col = getRandomColor();
-      a.zfill = col;
-      b.zfill = col;
+    var col = getRandomColor();
+    a.zfill = col;
+    b.zfill = col;
+    var dir = b.z - a.z;
+    if (dir == 1){ // moved right
+      b.dir = 'L';
+      a.dir = 'R';
+    } else { // moved left
+      b.dir = 'R';
+      a.dir = 'L';
     }
   }
   if (a.q != b.q){
     a.qmarker = true;
     b.qmarker = true;
-    if((b.q - a.q) != 0){
-      var col = getRandomColor();
-      a.qfill = col;
-      b.qfill = col;
+    var col = getRandomColor();
+    a.qfill = col;
+    b.qfill = col;
+    var dir = b.q - a.q;
+    if (dir == 1){ // moved down
+      b.dir = 'U';
+      a.dir = 'D';
+    } else { // moved up
+      b.dir = 'D';
+      a.dir = 'U';
     }
   }
 }
@@ -148,9 +162,8 @@ function Cell(i, j, z, q){
   this.q = q;
   this.visited = false;
   this.zmarker = false;
-  this.zfill = getRandomColor();
   this.qmarker = false;
-  this.qfill = getRandomColor();
+  this.dir = '';
 
   //top, right, bottom, left
   this.walls = [true, true, true, true];
@@ -222,15 +235,14 @@ function Cell(i, j, z, q){
     if (this.zmarker){
       noStroke();
       fill(this.zfill);
-      ellipse(x+scl/2,y+scl/2,scl/6,scl/6);
+      this.drawMarker(this.zmarker.dir);
     }
 
     //sets marker for q axis movement
     if (this.qmarker){
       noStroke();
       fill(this.qfill);
-      ellipse(x+scl/2,y+scl/2,scl/3,scl/3);
-      //triangle(x,y,x+scl/2,y+scl/2,x-scl/2,y-scl/2);
+      this.drawMarker(this.qmarker.dir);
     }
 
     //colour current cell
@@ -247,6 +259,13 @@ function Cell(i, j, z, q){
       rect(x,y,scl,scl);
     }
 
+    this.drawMarker = function(dir){
+      var offset = scl / 4;
+      if (this.dir == 'D') triangle(x+offset,y+offset,x+scl-offset,y+offset,x+scl/2,y+scl-offset);
+      if (this.dir == 'U') triangle(x+scl/2,y+offset,x+scl-offset,y+scl-offset,x+offset,y+scl-offset);
+      if (this.dir == 'R') triangle(x+offset,y+offset,x+scl-offset,y+scl/2,x+offset,y+scl-offset);
+      if (this.dir == 'L') triangle(x+offset,y+scl/2,x+scl-offset,y+offset,x+scl-offset,y+scl-offset);
+    }
   }
 }
 
